@@ -1,5 +1,5 @@
-# brain.py
 from google import genai
+from datetime import datetime  # <--- NUEVO IMPORT
 import config
 
 # Init Client
@@ -19,12 +19,23 @@ def think(user_text):
     try:
         print("🌐 BMO is thinking...")
         
-        # Build context
+        # 1. OBTENER HORA DEL SISTEMA
+        # Formato ejemplo: "07:30 PM"
+        hora_actual = datetime.now().strftime("%I:%M %p")
+        fecha_actual = datetime.now().strftime("%d/%m/%Y")
+        
+        # 2. CONSTRUIR CONTEXTO TEMPORAL
+        # Le decimos a BMO qué hora es "ahora mismo"
+        datos_sistema = f"INFORMACIÓN ACTUAL: Hoy es {fecha_actual} y son las {hora_actual}."
+        
+        # 3. CONSTRUIR PROMPT
         chat_history = "\n".join(MEMORY)
-        full_prompt = f"{config.SYSTEM_INSTRUCTION}\n\nHistory:\n{chat_history}\n\nUser: {user_text}\nBMO:"
+        
+        # Insertamos la hora dentro del prompt
+        full_prompt = f"{config.SYSTEM_INSTRUCTION}\n\n{datos_sistema}\n\nHistory:\n{chat_history}\n\nUser: {user_text}\nBMO:"
 
         response = client.models.generate_content(
-            model="gemini-2.0-flash", # Usamos flash por velocidad
+            model="gemini-2.0-flash", 
             contents=full_prompt
         )
         
@@ -34,4 +45,4 @@ def think(user_text):
 
     except Exception as e:
         print(f"❌ BRAIN ERROR: {e}")
-        return "Lo siento, tuve un error de conexión."
+        return "Lo siento, mis circuitos temporales fallaron."
