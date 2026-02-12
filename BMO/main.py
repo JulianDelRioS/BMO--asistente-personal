@@ -9,7 +9,7 @@ import brain
 import ears
 import mouth
 import faces
-
+import eyes
 # =============================================================================
 # 🏁 INICIALIZACIÓN
 # =============================================================================
@@ -41,34 +41,48 @@ def proceso_ia():
     IA_OCUPADA = True 
     
     # 1. Escuchar
-    ESTADO_BMO = "listening" # (Recuerda: faces.py lo mostrará estático)
+    ESTADO_BMO = "listening"
     texto_usuario = ears.listen()
     
     if texto_usuario:
         print(f"🗣️ Usuario: {texto_usuario}")
         ultima_actividad = pygame.time.get_ticks() # Reiniciar contador sueño
         brain.add_memory("Usuario", texto_usuario)
+        
+        # --- DETECTAR SI QUIERES QUE VEA (NUEVO) ---
+        ruta_foto = None
+        palabras_clave_vision = ["mira", "qué ves", "que ves", "observa", "toma una foto"]
+        
+        # Si detectamos una orden de ver
+        if any(p in texto_usuario.lower() for p in palabras_clave_vision):
+            print("👁️ Activando ojos...")
+            # Ponemos cara de "capturando" (si tienes la carpeta)
+            ESTADO_BMO = "capturing"
+            faces.dibujar(screen, ESTADO_BMO)
+            pygame.display.flip() # Forzamos que se dibuje YA
+            
+            # Tomar la foto
+            ruta_foto = eyes.tomar_foto()
 
         # 2. Pensar (Gemini)
         ESTADO_BMO = "thinking"
-        respuesta = brain.think(texto_usuario)
+        # Le pasamos el texto Y la foto (si ruta_foto es None, lo ignora)
+        respuesta = brain.think(texto_usuario, ruta_imagen=ruta_foto)
 
-        # --- AQUÍ ESTÁ EL CAMBIO CLAVE ---
-        
-        # BMO SIGUE EN "THINKING" MIENTRAS DESCARGA EL AUDIO
-        # (Esto tarda esos 3 segundos que notabas)
+        # 3. Generar Audio (BMO sigue pensando para evitar lag)
+        # Esto tarda unos segundos, pero la cara sigue en "thinking"
         exito = mouth.crear_archivo_audio(respuesta)
 
         if exito:
-            # 3. Hablar (Solo cambiamos la cara AHORA que el audio está listo)
+            # 4. Hablar (Solo AHORA cambiamos la cara)
             ESTADO_BMO = "speaking"
             mouth.reproducir_ahora()
         
-        # ---------------------------------
-        
+        # Reiniciar contador para que no se duerma justo después de hablar
         ultima_actividad = pygame.time.get_ticks()
     
     IA_OCUPADA = False 
+    # El loop principal se encarga de ponerlo en 'listening' o 'sleep'
     # Al terminar, el loop principal lo pondrá en listening o sleep según corresponda
 
 # =============================================================================
