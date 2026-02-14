@@ -30,6 +30,15 @@ if not API_KEY:
     if API_KEY == "TU_API_KEY_AQUI_SI_NO_USAS_ENV":
         print("⚠️ ADVERTENCIA: No se encontró API KEY.")
 
+
+
+# ==========================================
+# 🎵 CREDENCIALES DE SPOTIFY (Desde .env)
+# ==========================================
+SPOTIPY_CLIENT_ID = os.getenv("SPOTIPY_CLIENT_ID")
+SPOTIPY_CLIENT_SECRET = os.getenv("SPOTIPY_CLIENT_SECRET")
+# Si por alguna razón no está en el .env, usa esta por defecto
+SPOTIPY_REDIRECT_URI = os.getenv("SPOTIPY_REDIRECT_URI", "http://127.0.0.1:8888/callback")
 # ==========================================
 # ⚙️ GENERAL SETTINGS (Tus ajustes)
 # ==========================================
@@ -40,7 +49,7 @@ COOLDOWN_MS = 3000           # Tiempo entre respuestas
 
 # 🧠 MEMORIA Y AUDIO
 MAX_MEMORY = 6
-AUDIO_THRESHOLD = 15         # Sensibilidad del micrófono
+AUDIO_THRESHOLD = 8      # Sensibilidad del micrófono
 
 # 📁 PATHS (Actualizados con resource_path para evitar errores)
 MODEL_PATH = resource_path("model")
