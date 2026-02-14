@@ -2,6 +2,7 @@ import pygame
 import sys
 import threading
 import time
+import dj_bmo
 
 # Tus módulos
 import config
@@ -10,6 +11,7 @@ import ears
 import mouth
 import faces
 import eyes
+
 # =============================================================================
 # 🏁 INICIALIZACIÓN
 # =============================================================================
@@ -23,12 +25,11 @@ clock = pygame.time.Clock()
 ears.start_volume_listener()
 
 # ESTADO GLOBAL
-# Empezamos en "listening" como pediste
 ESTADO_BMO = "listening" 
-IA_OCUPADA = False # Para saber si está procesando y no interrumpir
+IA_OCUPADA = False 
 
 # TEMPORIZADOR DE SUEÑO
-ultima_actividad = pygame.time.get_ticks() # Marca el tiempo de inicio
+ultima_actividad = pygame.time.get_ticks() 
 
 print("✅ BMO LISTO.")
 
@@ -39,6 +40,7 @@ def proceso_ia():
     global ESTADO_BMO, IA_OCUPADA, ultima_actividad
     
     IA_OCUPADA = True 
+    estado_anterior = ESTADO_BMO  # 🧠 NUEVO: BMO anota qué estaba haciendo
     
     # 1. Escuchar
     ESTADO_BMO = "listening"
@@ -46,44 +48,111 @@ def proceso_ia():
     
     if texto_usuario:
         print(f"🗣️ Usuario: {texto_usuario}")
-        ultima_actividad = pygame.time.get_ticks() # Reiniciar contador sueño
+        ultima_actividad = pygame.time.get_ticks() 
         brain.add_memory("Usuario", texto_usuario)
         
-        # --- DETECTAR SI QUIERES QUE VEA (NUEVO) ---
+        texto_lower = texto_usuario.lower()
+
+        # ==========================================
+        # 🎵 DETECTAR ORDEN DE MÚSICA Y CONTROL
+        # ==========================================
+        palabras_musica = ["reproduce", "pon la canción", "pon la cancion", "pon música", "pon musica", "quiero escuchar", "la canción", "la cancion", "toca", "reproducir","música", "pon", "on"]
+        palabras_pausa = ["ausa","pausa la música", "pausa la musica", "pausar", "detén la música", "silencio bmo", "pausa", "para música", "para musica", "para la música", "para la musica", "detener música"]
+        palabras_siguiente = ["siguiente canción", "siguiente cancion", "otra canción", "cambia la canción", "cambia de cancion", "siguiente"]
+
+        # --- A. ¿QUIERES PAUSAR? ---
+        if any(p in texto_lower for p in palabras_pausa):
+            print("🎧 DJ BMO: Pausando música...")
+            respuesta_spotify = dj_bmo.pausar_musica()
+            
+            ESTADO_BMO = "speaking"
+            if mouth.crear_archivo_audio(respuesta_spotify):
+                mouth.reproducir_ahora()
+            
+            ESTADO_BMO = "listening" 
+            ultima_actividad = pygame.time.get_ticks()
+            IA_OCUPADA = False
+            return 
+
+        # --- B. ¿QUIERES LA SIGUIENTE CANCIÓN? ---
+        elif any(p in texto_lower for p in palabras_siguiente):
+            print("🎧 DJ BMO: Siguiente canción...")
+            respuesta_spotify = dj_bmo.siguiente_cancion()
+            
+            ESTADO_BMO = "speaking"
+            if mouth.crear_archivo_audio(respuesta_spotify):
+                mouth.reproducir_ahora()
+            
+            ESTADO_BMO = "music"
+            ultima_actividad = pygame.time.get_ticks()
+            IA_OCUPADA = False
+            return 
+
+        # --- C. ¿QUIERES REPRODUCIR ALGO NUEVO? ---
+        elif any(p in texto_lower for p in palabras_musica):
+            print("🎧 DJ BMO Activado...")
+            ESTADO_BMO = "thinking" 
+            faces.dibujar(screen, ESTADO_BMO)
+            pygame.display.flip()
+
+            busqueda = texto_lower
+            for p in palabras_musica:
+                busqueda = busqueda.replace(p, "")
+            
+            palabras_basura = ["on"]
+            for basura in palabras_basura:
+                busqueda = busqueda.replace(basura, "")
+                
+            busqueda = busqueda.strip()
+
+            if not busqueda:
+                busqueda = "Bad bunny" 
+
+            respuesta_spotify = dj_bmo.reproducir_cancion(busqueda)
+            
+            ESTADO_BMO = "speaking"
+            exito = mouth.crear_archivo_audio(respuesta_spotify)
+            if exito:
+                mouth.reproducir_ahora()
+            
+            ESTADO_BMO = "music"
+            ultima_actividad = pygame.time.get_ticks()
+            IA_OCUPADA = False
+            return 
+
+        # ==========================================
+        # 👁️ DETECTAR SI QUIERES QUE VEA
+        # ==========================================
         ruta_foto = None
         palabras_clave_vision = ["mira", "qué ves", "que ves", "observa", "toma una foto"]
         
-        # Si detectamos una orden de ver
-        if any(p in texto_usuario.lower() for p in palabras_clave_vision):
+        if any(p in texto_lower for p in palabras_clave_vision):
             print("👁️ Activando ojos...")
-            # Ponemos cara de "capturando" (si tienes la carpeta)
             ESTADO_BMO = "capturing"
             faces.dibujar(screen, ESTADO_BMO)
-            pygame.display.flip() # Forzamos que se dibuje YA
+            pygame.display.flip() 
             
-            # Tomar la foto
             ruta_foto = eyes.tomar_foto()
 
-        # 2. Pensar (Gemini)
+        # ==========================================
+        # 🧠 PENSAR (Gemini)
+        # ==========================================
         ESTADO_BMO = "thinking"
-        # Le pasamos el texto Y la foto (si ruta_foto es None, lo ignora)
         respuesta = brain.think(texto_usuario, ruta_imagen=ruta_foto)
 
-        # 3. Generar Audio (BMO sigue pensando para evitar lag)
-        # Esto tarda unos segundos, pero la cara sigue en "thinking"
         exito = mouth.crear_archivo_audio(respuesta)
 
         if exito:
-            # 4. Hablar (Solo AHORA cambiamos la cara)
             ESTADO_BMO = "speaking"
             mouth.reproducir_ahora()
         
-        # Reiniciar contador para que no se duerma justo después de hablar
         ultima_actividad = pygame.time.get_ticks()
-    
-    IA_OCUPADA = False 
-    # El loop principal se encarga de ponerlo en 'listening' o 'sleep'
-    # Al terminar, el loop principal lo pondrá en listening o sleep según corresponda
+        
+    else:
+        # ⬇️ NUEVO: Si no entendió nada (falsa alarma por la música), vuelve a ser DJ
+        ESTADO_BMO = estado_anterior
+        
+    IA_OCUPADA = False
 
 # =============================================================================
 # 🔁 BUCLE PRINCIPAL
@@ -91,40 +160,30 @@ def proceso_ia():
 running = True
 
 while running:
-    # Tiempo actual en este frame
     ahora = pygame.time.get_ticks()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    # --- LÓGICA DE COMPORTAMIENTO ---
-    
     if not IA_OCUPADA:
-        # 1. Calcular cuánto tiempo ha pasado desde la última vez que habló/escuchó
         tiempo_inactivo = ahora - ultima_actividad
 
-        # 2. Decidir estado según tiempo
-        if tiempo_inactivo > config.TIEMPO_PARA_DORMIR:
-            ESTADO_BMO = "sleep"
-        else:
-            # Si no ha pasado el tiempo, se mantiene en listening (tu default)
-            ESTADO_BMO = "listening"
+        # ⬇️ NUEVA LÓGICA: Si NO está en modo DJ, aplicamos las reglas normales
+        if ESTADO_BMO != "music":
+            if tiempo_inactivo > config.TIEMPO_PARA_DORMIR:
+                ESTADO_BMO = "sleep"
+            else:
+                ESTADO_BMO = "listening"
+        # Si ESTADO_BMO es "music", simplemente lo deja así y no se duerme.
 
-        # 3. Detectar sonido para "Despertar" o "Atender"
         nivel_ruido = ears.get_audio_level()
         
         if nivel_ruido > config.AUDIO_THRESHOLD:
-            # Si hay ruido, ¡SE DESPIERTA! Reiniciamos contador
             ultima_actividad = ahora 
-            
-            # Lanzamos la IA
             threading.Thread(target=proceso_ia, daemon=True).start()
 
-    # --- DIBUJAR ---
-    # faces.py se encarga de animar la carpeta que le digamos
     faces.dibujar(screen, ESTADO_BMO)
-
     pygame.display.flip()
     clock.tick(60)
 
