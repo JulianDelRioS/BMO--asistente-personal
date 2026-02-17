@@ -1,0 +1,14 @@
+
+google-generativeai
+SpeechRecognition
+pyaudio
+edge_tts==7.2.7
+numpy==2.4.2
+opencv_python==4.10.0.84
+Pillow==12.1.1
+protobuf==6.33.5
+pygame==2.6.1
+python-dotenv==1.2.1
+sounddevice==0.5.5
+spotipy==2.25.2
+requests

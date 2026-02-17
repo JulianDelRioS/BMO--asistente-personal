@@ -1,2 +1,3 @@
 .env
 google_keys.json
+__pycache__
