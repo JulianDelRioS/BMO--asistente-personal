@@ -1,4 +1,4 @@
 .env
 google_keys.json
 __pycache__
-.cache
+.cache/
