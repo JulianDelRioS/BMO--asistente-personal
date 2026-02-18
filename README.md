@@ -1,57 +1,60 @@
-BMO AI es un asistente virtual de escritorio interactivo. Construido en Python, BMO combina la potencia de Google Gemini para conversaciones naturales, Spotify para control musical avanzado y Pygame para una interfaz visual expresiva y reactiva.
+BMO AI – Asistente Virtual Multimodal en Python
 
-A diferencia de los asistentes genéricos, BMO tiene personalidad, "ojos" para ver el mundo real y un "oído selectivo" inteligente para no interrumpir la música.
+BMO AI es un asistente de escritorio desarrollado en Python que integra procesamiento de lenguaje natural, visión computacional y control multimedia en tiempo real.
 
-🛠️ Tecnologías Utilizadas (Tech Stack)
-El núcleo de BMO está construido modularmente utilizando las siguientes tecnologías:
+El sistema combina modelos LLM, reconocimiento de voz, síntesis de voz y APIs externas bajo una arquitectura modular orientada a eventos.
 
-Lenguaje: Python 3.x 🐍
+🚀 Stack Tecnológico
 
-Cerebro (LLM): Google Gemini 1.5 Pro/Flash API (Generación de texto y visión).
+Lenguaje: Python 3.x
 
-Interfaz Visual (UI): Pygame (Renderizado de caras y estados: Happy, Listening, Music, Sleep, etc.).
+LLM: Google Gemini (texto + visión multimodal)
 
-Voz (TTS/STT):
+UI: Pygame
 
-Input: SpeechRecognition (Google Web Speech API).
+Speech-to-Text: Google Web Speech API
 
-Output: gTTS (Google Text-to-Speech) + pygame.mixer.
+Text-to-Speech: gTTS + pygame.mixer
 
-Música (DJ Mode): Spotipy (Spotify Web API) con autenticación OAuth2.
+Integración Musical: Spotify Web API (OAuth2 con Spotipy)
 
-Visión: OpenCV (Captura de imágenes) + Análisis multimodal con Gemini.
+Visión Artificial: OpenCV
 
-✨ Funcionalidades Actuales
-🧠 1. Inteligencia Conversacional & Personalidad
-Conversaciones fluidas y contextuales gracias a Gemini.
+🧠 Características Técnicas Destacadas
+1️⃣ Integración Multimodal en Tiempo Real
 
-Personalidad definida ("System Prompt").
+Procesamiento de voz → interpretación con LLM → ejecución de acciones.
 
-Memoria a Corto Plazo: Recuerda el contexto de la charla inmediata.
+Análisis de imágenes capturadas por webcam mediante modelos multimodales.
 
-🎧 2. DJ BMO (Integración Profunda con Spotify)
-Control Total: Reproducir, Pausar, Siguiente canción.
+Conversaciones contextuales con memoria a corto plazo.
 
-Búsqueda Inteligente de Playlists:
+2️⃣ Control Inteligente de Spotify (OAuth2)
 
-Modo Directo: "Pon mi playlist Rock" (Busca coincidencia exacta o difusa).
+Manejo completo de reproducción.
 
-Modo Interactivo: Si dices "Pon mi playlist", BMO lista tus listas y te pregunta cuál quieres.
+Búsqueda difusa de playlists.
 
-Normalización: Ignora errores de espacios o mayúsculas ("Mi  Playlist" == "mi playlist").
+Resolución de ambigüedad mediante diálogo interactivo.
 
-Auto-Arranque: Si Spotify está cerrado en el PC, BMO lo abre automáticamente antes de ejecutar la orden.
+Auto-lanzamiento de Spotify si la aplicación no está abierta.
 
-Búsqueda Global: Si no encuentra la canción/lista en tu biblioteca, busca en el catálogo global de Spotify.
+3️⃣ Sistema de Gestión de Estados
 
-👁️ 3. Visión Computarizada
-Comando: "BMO, mira esto" o "¿Qué ves?".
+Arquitectura basada en estados (Listening, DJ Mode, Sleep, etc.).
 
-BMO toma una foto con la webcam, la envía a Gemini Vision y describe lo que ve o responde preguntas sobre la imagen.
+Persistencia del contexto ante interrupciones.
 
-🛡️ 4. Robustez y Gestión de Estado
-Sistema de "Strikes" (Anti-Ruido): Si BMO detecta ruido 4 veces seguidas sin identificar voz (ej. música alta), desactiva su micrófono temporalmente (10s) para no interrumpir.
+Algoritmo anti-ruido con sistema de strikes para evitar activaciones falsas.
 
-Persistencia de Estado: Si interrumpes el modo música con ruido, BMO recuerda que era DJ y vuelve a ponerse los auriculares.
+4️⃣ Diseño Modular
 
-Modo Sueño: Se "duerme"  tras inactividad.
+Separación de responsabilidades (voz, UI, lógica, integración externa).
+
+Fácil extensión para nuevas capacidades.
+
+Manejo de APIs externas y autenticación segura.
+
+🎯 Objetivo del Proyecto
+
+Explorar la integración práctica de modelos LLM y visión artificial en aplicaciones de escritorio interactivas, priorizando experiencia de usuario, robustez y arquitectura escalable.
